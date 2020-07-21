@@ -1,0 +1,7 @@
+export UNLEASH_API_URL=http://localhost:4242/api
+export UNLEASH_APP_NAME=unleash-proxy
+export UNLEASH_INSTANCE_ID=test
+#UNLEASH_CLIENT_SECRET=
+
+# start unleash via docker-compose -d
+
