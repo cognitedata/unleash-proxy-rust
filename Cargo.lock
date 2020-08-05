@@ -2199,11 +2199,14 @@ name = "unleash-proxy-rust"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "enum-map",
  "futures 0.3.5",
+ "futures-timer",
  "http-client",
  "hyper",
  "ipaddress",
+ "log",
  "serde",
  "serde_json",
  "tokio",
