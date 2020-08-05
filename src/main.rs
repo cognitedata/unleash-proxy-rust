@@ -9,7 +9,6 @@ use std::time::Duration;
 use anyhow::{anyhow, Context as AnyhowContext, Result};
 use chrono::Utc;
 use enum_map::Enum;
-use futures::future;
 use futures_timer::Delay;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Request, Response, Server};
@@ -20,6 +19,8 @@ use unleash_api_client::api::{Metrics, MetricsBucket};
 use unleash_api_client::client;
 use unleash_api_client::config::EnvironmentConfig;
 use unleash_api_client::Context;
+
+const ALLOWED_HEADERS: &str = "authorization,content-type,if-none-match";
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Deserialize, Serialize, Enum, Clone)]
@@ -118,6 +119,7 @@ where
     Ok(Response::builder()
         .header(hyper::header::CONTENT_TYPE, "application/json")
         .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(hyper::header::ACCESS_CONTROL_ALLOW_HEADERS, ALLOWED_HEADERS)
         .status(StatusCode::OK)
         .body(serde_json::to_vec(&toggles)?.into())?)
 }
@@ -167,6 +169,7 @@ async fn metrics(
     }
     Ok(Response::builder()
         .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(hyper::header::ACCESS_CONTROL_ALLOW_HEADERS, ALLOWED_HEADERS)
         .status(StatusCode::OK)
         .body(Body::empty())?)
 }
@@ -182,6 +185,7 @@ async fn send_metrics<C>(
     let metrics_endpoint = Metrics::endpoint(url);
     loop {
         let start = Utc::now();
+        debug!("send_metrics: waiting {:?}", interval);
         Delay::new(interval).await;
         let mut batch = HashMap::new();
         {
@@ -203,7 +207,7 @@ async fn send_metrics<C>(
                 if let Ok(res) = res {
                     if res.status().is_success() {
                         metrics_uploaded = true;
-                        debug!("poll: uploaded feature metrics")
+                        debug!("poll: uploaded feature metrics `{}`", app_name);
                     }
                 }
             }
@@ -216,7 +220,9 @@ async fn send_metrics<C>(
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    env_logger::init();
     // We'll bind to 127.0.0.1:3000
+    debug!("serving on 127.0.0.1:3000");
     let addr = ([127, 0, 0, 1], 3000).into();
 
     let config = EnvironmentConfig::from_env().map_err(|e| anyhow!(e))?;
@@ -224,7 +230,6 @@ async fn main() -> Result<()> {
         client::ClientBuilder::default()
             .disable_metric_submission()
             .enable_string_features()
-            .interval(500)
             .into_client::<http_client::native::NativeClient, UserFeatures>(
                 &config.api_url,
                 &config.app_name,
@@ -249,12 +254,21 @@ async fn main() -> Result<()> {
                 async move {
                     match (req.method(), req.uri().path()) {
                         (&Method::GET, "/") => toggles(req_client, req).await,
+                        (&Method::OPTIONS, "/") => Ok(Response::builder()
+                            .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                            .header(hyper::header::ACCESS_CONTROL_ALLOW_HEADERS, ALLOWED_HEADERS)
+                            .status(StatusCode::OK)
+                            .body(Body::empty())?),
                         (&Method::POST, "/client/metrics") => metrics(req_metrics, req).await,
-                        _ => {
-                            let mut response = Response::new(Body::empty());
-                            *response.status_mut() = StatusCode::NOT_FOUND;
-                            future::ok(response).await
-                        }
+                        (&Method::OPTIONS, "/client/metrics") => Ok(Response::builder()
+                            .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                            .header(hyper::header::ACCESS_CONTROL_ALLOW_HEADERS, ALLOWED_HEADERS)
+                            .status(StatusCode::OK)
+                            .body(Body::empty())?),
+                        _ => Ok(Response::builder()
+                            .header(hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                            .status(StatusCode::NOT_FOUND)
+                            .body(Body::empty())?),
                     }
                 }
             }))
@@ -264,15 +278,17 @@ async fn main() -> Result<()> {
     let server = Server::bind(&addr).serve(make_svc);
     if let Err(e) = futures::try_join!(
         async { Ok(client.poll_for_updates().await) },
-        server,
         async {
             Ok(send_metrics(
                 &config.api_url,
                 client.clone(),
                 client_metrics.clone(),
-                Duration::from_secs(12),
-            ))
+                // 30 seconds is the default interval for metrics in the browser client source
+                Duration::from_secs(30),
+            )
+            .await)
         },
+        server,
     ) {
         eprintln!("server error: {}", e);
     }
