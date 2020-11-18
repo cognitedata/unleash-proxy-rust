@@ -52,6 +52,12 @@ struct Toggles {
     toggles: Vec<Toggle>,
 }
 
+const PROPERTY_PREFIX: &str = "properties[";
+
+fn extract_key(k: &str) -> String {
+    k[PROPERTY_PREFIX.len()..k.len() - 1].to_string()
+}
+
 async fn toggles(
     client: Arc<client::Client<UserFeatures>>,
     req: Request<Body>,
@@ -80,12 +86,9 @@ async fn toggles(
                         // should we report errors on bad IP address formats?
                         context.remote_address = ip_parsed.ok().map(IPAddress);
                     }
-                    // TODO: how are properties.k=v handled? what separator?
-                    // This seems to be unspecified in the js client.
-                    k if k.starts_with("properties.") => {
-                        context
-                            .properties
-                            .insert(k.split_at("properties".len()).1.to_owned(), v.to_string());
+                    k if k.starts_with(PROPERTY_PREFIX) && k.ends_with(']') => {
+                        let k = extract_key(k);
+                        context.properties.insert(k, v.to_string());
                     }
                     _ => {}
                 }
@@ -288,4 +291,12 @@ async fn main() -> Result<()> {
         eprintln!("server error: {}", e);
     }
     Ok(())
+}
+
+mod tests {
+    #[test]
+    fn properties() {
+        assert_eq!("foo", super::extract_key("properties[foo]"));
+        assert_eq!("", super::extract_key("properties[]"));
+    }
 }
