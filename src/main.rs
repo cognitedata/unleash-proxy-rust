@@ -82,10 +82,14 @@ async fn toggles(
                     }
                     // TODO: how are properties.k=v handled? what separator?
                     // This seems to be unspecified in the js client.
-                    k if k.starts_with("properties.") => {
+                    k if k.starts_with("properties[") => {
+                        // Get property from inside square brackets
+                        let mut propertyKey = k.split_at("properties[".len()).1.to_owned();
+                        // Pop last char "]"
+                        propertyKey.pop();
                         context
                             .properties
-                            .insert(k.split_at("properties".len()).1.to_owned(), v.to_string());
+                            .insert(propertyKey, v.to_string());
                     }
                     _ => {}
                 }
