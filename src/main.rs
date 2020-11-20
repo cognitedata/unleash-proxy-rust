@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use unleash_api_client::api::{Metrics, MetricsBucket};
 use unleash_api_client::client;
 use unleash_api_client::config::EnvironmentConfig;
-use unleash_api_client::Context;
+use unleash_api_client::context::{Context, IPAddress};
 
 const ALLOWED_HEADERS: &str = "authorization,content-type,if-none-match";
 
@@ -52,13 +52,10 @@ struct Toggles {
     toggles: Vec<Toggle>,
 }
 
-async fn toggles<C>(
-    client: Arc<client::Client<C, UserFeatures>>,
+async fn toggles(
+    client: Arc<client::Client<UserFeatures>>,
     req: Request<Body>,
-) -> Result<Response<Body>>
-where
-    C: http_client::HttpClient + Default,
-{
+) -> Result<Response<Body>> {
     let cache = client.cached_state();
     let toggles = match cache.as_ref() {
         // Make an empty API doc with nothing in it
@@ -81,7 +78,7 @@ where
                     "remoteAddress" => {
                         let ip_parsed = ipaddress::IPAddress::parse(v.to_string());
                         // should we report errors on bad IP address formats?
-                        context.remote_address = ip_parsed.ok();
+                        context.remote_address = ip_parsed.ok().map(IPAddress);
                     }
                     // TODO: how are properties.k=v handled? what separator?
                     // This seems to be unspecified in the js client.
@@ -174,14 +171,12 @@ async fn metrics(
         .body(Body::empty())?)
 }
 
-async fn send_metrics<C>(
+async fn send_metrics(
     url: &str,
-    client: Arc<client::Client<C, UserFeatures>>,
+    client: Arc<client::Client<UserFeatures>>,
     metrics: Arc<Mutex<HashMap<String, Metrics>>>,
     interval: Duration,
-) where
-    C: http_client::HttpClient + Default,
-{
+) {
     let metrics_endpoint = Metrics::endpoint(url);
     loop {
         let start = Utc::now();
@@ -201,9 +196,9 @@ async fn send_metrics<C>(
             let mut metrics_uploaded = false;
             metrics.bucket.start = start;
             metrics.bucket.stop = stop;
-            let req = client.http.post(&metrics_endpoint).body_json(&metrics);
-            if let Ok(req) = req {
-                let res = req.await;
+            let req = client.http.post(&metrics_endpoint);
+            if let Ok(body) = http_types::Body::from_json(&metrics) {
+                let res = req.body(body).await;
                 if let Ok(res) = res {
                     if res.status().is_success() {
                         metrics_uploaded = true;
@@ -230,7 +225,7 @@ async fn main() -> Result<()> {
         client::ClientBuilder::default()
             .disable_metric_submission()
             .enable_string_features()
-            .into_client::<http_client::native::NativeClient, UserFeatures>(
+            .into_client::<UserFeatures>(
                 &config.api_url,
                 &config.app_name,
                 &config.instance_id,
