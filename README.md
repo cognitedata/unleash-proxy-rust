@@ -2,6 +2,9 @@
 
 This accepts an unleash context as GET query parameters, evaluates all the
 toggles present in the Unleash API and returns a JSON document with their state.
+Custom properties can be submitted by passing `properties[name]=value` in the
+query string. Percent decoding is handled: a percent encoded name, or value,
+will be passed to the Unleash API client in decoded form.
 
 It also accepts Metrics documents from clients and aggregates them before
 passing onto the upstream Unleash API (protecting the API in case of DOS attack
