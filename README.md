@@ -15,9 +15,9 @@ matches the API expected by the JS client at
 https://github.com/unleash-hosted/unleash-proxy-client-js/; if that JS client
 does not work with this proxy, it is a bug.
     
-The current code base does not yet implement variants (as the rust client does
-not yet do that), nor client authentication (but that should perhaps be done in
-an ingress layer rather than in the proxy itself).
+The current code base does not yet implement variants (though as the rust client
+does this should be straight forward now), nor client authentication (but that
+should perhaps be done in an ingress layer rather than in the proxy itself).
 
 Performance wise, this shows acceptable performance today - approximately 0.05ms
 per request.
