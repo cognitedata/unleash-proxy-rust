@@ -332,16 +332,20 @@ async fn _main(builder: ClientBuilder) -> Result<()> {
 
     let server = Server::bind(&addr).serve(make_svc);
     if let Err(e) = futures::try_join!(
-        async { Ok(client.poll_for_updates().await) },
         async {
-            Ok(send_metrics(
+            client.poll_for_updates().await;
+            Ok(())
+        },
+        async {
+            send_metrics(
                 &config.api_url,
                 client.clone(),
                 client_metrics.clone(),
                 // 30 seconds is the default interval for metrics in the browser client source
                 Duration::from_secs(30),
             )
-            .await)
+            .await;
+            Ok(())
         },
         server,
     ) {
