@@ -1,9 +1,10 @@
 # A web browser proxy for unleash
 
-This accepts an unleash context as GET query parameters, evaluates all the
-toggles present in the Unleash API and returns a JSON document with their state.
-Custom properties can be submitted by passing `properties[name]=value` in the
-query string. Percent decoding is handled: a percent encoded name, or value,
+[Unleash](https://unleash.github.io) is a feature flag API system. This is a web
+service that accepts an unleash context as GET query parameters, evaluates all
+the toggles present in the Unleash API and returns a JSON document with their
+state. Custom properties can be submitted by passing `properties[name]=value` in
+the query string. Percent decoding is handled: a percent encoded name, or value,
 will be passed to the Unleash API client in decoded form.
 
 It also accepts Metrics documents from clients and aggregates them before
@@ -24,14 +25,26 @@ per request.
 
 ## Custom Strategies
 
-As Unleash implements custom stratgies client-side, custom strategies will
-require a custom proxy; for now there is no plugin-approach implemented: make a
-branch or other fork of the code and implement custom strategies in that branch;
-we won't merge strategies that are not relevant to the upstream Unleash API into
-the master branch of the proxy.
+As Unleash implements custom strategies client-side, custom strategies will
+require a custom proxy; see the ProxyBuilder struct in the crate to permit low-touch implementations.
 
 ## Copyright
 
-This code is copyright (c) 2020 Cognite AS, all rights reserved.
+This code is copyright (c) 2020-2022 Cognite AS, all rights reserved.
 
-It is not yet licensed for redistribution.
+It is licensed under the Apache V2 License.
+
+
+## status
+
+While it doesn't support everything Unleash does, it should be very stable with the subset it does support. We are not actively making it better today, but neither it is forgotten.
+
+## Code of conduct
+
+Please note that this project is released with a Contributor Code of Conduct. By
+participating in this project you agree to abide by its terms.
+
+## Contributing
+
+PR's on Github as normal please. Cargo test to run the test suite, rustfmt code
+before submitting. Testing is entirely manual today; that would be great to change.

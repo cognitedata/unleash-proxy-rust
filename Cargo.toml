@@ -1,9 +1,19 @@
 [package]
 authors = ["Robert Collins <robert.collins@cognite.com>"]
+categories = ["command-line-utilities", "web-programming"]
+description = "An https://unleash.github.io/ web proxy"
 edition = "2018"
-license = "unlicensed"
+homepage = "https://github.com/cognitedata/unleash-proxy-rust/"
+keywords = ["continualdeployment"]
+license = "Apache-2.0"
 name = "unleash-proxy-rust"
+readme = "README.md"
+repository = "https://github.com/cognitedata/unleash-proxy-rust/"
 version = "0.1.0"
+
+[badges]
+[badges.maintenance]
+status = "experimental"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
