@@ -6,7 +6,7 @@
 //! async fn main() -> anyhow::Result<()> {
 //!   // Add deployment specific concerns here
 //!   env_logger::init();
-//!   Ok(unleash_proxy_rust::main().await?)
+//!   Ok(unleash_proxy::main().await?)
 //! }
 //! ```
 //!
@@ -44,7 +44,7 @@
 //! async fn main() -> anyhow::Result<()> {
 //!   // Add deployment specific concerns here
 //!   env_logger::init();
-//!   Ok(unleash_proxy_rust::ProxyBuilder::default().
+//!   Ok(unleash_proxy::ProxyBuilder::default().
 //!       strategy("example", Box::new(&example)).execute().await?)
 //! }
 //! ```

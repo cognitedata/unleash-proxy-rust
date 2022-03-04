@@ -12,5 +12,5 @@ async fn main() -> anyhow::Result<()> {
     // TODO: Add prometheus
     // TODO: Add healthz route control
     env_logger::init();
-    unleash_proxy_rust::main().await
+    unleash_proxy::main().await
 }

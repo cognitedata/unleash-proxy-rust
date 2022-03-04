@@ -2336,7 +2336,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "unleash-proxy-rust"
+name = "unleash-proxy"
 version = "0.1.0"
 dependencies = [
  "anyhow",
