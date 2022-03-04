@@ -6,7 +6,7 @@
 //! async fn main() -> anyhow::Result<()> {
 //!   // Add deployment specific concerns here
 //!   env_logger::init();
-//!   Ok(unleash_proxy::main().await?)
+//!   unleash_proxy::main().await
 //! }
 //! ```
 //!
@@ -44,8 +44,8 @@
 //! async fn main() -> anyhow::Result<()> {
 //!   // Add deployment specific concerns here
 //!   env_logger::init();
-//!   Ok(unleash_proxy::ProxyBuilder::default().
-//!       strategy("example", Box::new(&example)).execute().await?)
+//!   unleash_proxy::ProxyBuilder::default().
+//!       strategy("example", Box::new(&example)).execute().await
 //! }
 //! ```
 #![warn(clippy::all)]
@@ -273,7 +273,7 @@ async fn send_metrics(
 /// different deployment configurations e.g. logging, tracing, metrics
 /// implementations. See the [`crate`] level documentation for examples.
 pub async fn main() -> Result<()> {
-    Ok(ProxyBuilder::default().execute().await?)
+    ProxyBuilder::default().execute().await
 }
 
 async fn _main(builder: ClientBuilder) -> Result<()> {
@@ -362,7 +362,7 @@ pub struct ProxyBuilder {
 impl ProxyBuilder {
     /// Run the configured proxy
     pub async fn execute(self) -> Result<()> {
-        Ok(_main(self.client_builder).await?)
+        _main(self.client_builder).await
     }
 
     /// Add a [`Strategy`] to this proxy.

@@ -35,9 +35,12 @@ This code is copyright (c) 2020-2022 Cognite AS, all rights reserved.
 It is licensed under the Apache V2 License.
 
 
-## status
+## Status
 
-While it doesn't support everything Unleash does, it should be very stable with the subset it does support. We are not actively making it better today, but neither it is forgotten.
+While it doesn't support everything Unleash does, it should be very stable with 
+the subset it does support. We are not actively making it better today, but 
+neither it is forgotten.
+
 
 ## Code of conduct
 

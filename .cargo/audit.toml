@@ -6,7 +6,7 @@ ignore = [
   "RUSTSEC-2020-0071",
   "RUSTSEC-2020-0159",
 
-  # Vulernabilities from transitive dependencies of unleash-api-client.
+  # Vulnerabilities from transitive dependencies of unleash-api-client.
   # We do not use (directly or indirectly) the vulnerable code, so it should be
   # fine to ignore until the upstream dependency has been fixed.
   "RUSTSEC-2022-0004",
