@@ -9,7 +9,7 @@ license = "Apache-2.0"
 name = "unleash-proxy"
 readme = "README.md"
 repository = "https://github.com/cognitedata/unleash-proxy-rust/"
-version = "0.1.0"
+version = "0.2.0-alpha1"
 
 [badges]
 [badges.maintenance]
