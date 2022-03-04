@@ -1,0 +1,14 @@
+[advisories]
+ignore = [
+  # Chrono breakage due to threading safety. Not directly vulnerable, and looks
+  # like our related packages are not doing the bad thing... we can wait for the
+  # ecosystem to get fixed.
+  "RUSTSEC-2020-0071",
+  "RUSTSEC-2020-0159",
+
+  # Vulnerabilities from transitive dependencies of unleash-api-client.
+  # We do not use (directly or indirectly) the vulnerable code, so it should be
+  # fine to ignore until the upstream dependency has been fixed.
+  "RUSTSEC-2022-0004",
+  "RUSTSEC-2022-0006",
+]

@@ -1,4 +1,53 @@
-// Copyright 2020 Cognite AS
+//! Copyright 2020-2022 Cognite AS
+//!
+//! The included binary `unleash-proxy` is equivalent to this code:
+//! ```rust,no_run
+//! #[tokio::main]
+//! async fn main() -> anyhow::Result<()> {
+//!   // Add deployment specific concerns here
+//!   env_logger::init();
+//!   unleash_proxy::main().await
+//! }
+//! ```
+//!
+//! Here is an example adding a custom strategy:
+//! ```rust,no_run
+//! use std::collections::{HashMap, HashSet};
+//! use std::hash::BuildHasher;
+//! use serde::{Deserialize, Serialize};
+//! use unleash_api_client::context::Context;
+//! use unleash_api_client::strategy;
+//!
+//! pub fn example<S: BuildHasher>(
+//!     parameters: Option<HashMap<String, String, S>>,
+//! ) -> strategy::Evaluate {
+//!     let mut items: HashSet<String> = HashSet::new();
+//!     if let Some(parameters) = parameters {
+//!         if let Some(item_list) = parameters.get("exampleParameter") {
+//!             for item in item_list.split(',') {
+//!                 items.insert(item.trim().into());
+//!             }
+//!         }
+//!     }
+//!     Box::new(move |context: &Context| -> bool {
+//!         matches!(
+//!             context
+//!                 .properties
+//!                 .get("exampleProperty")
+//!                 .map(|item| items.contains(item)),
+//!             Some(true)
+//!         )
+//!     })
+//! }
+//!
+//! #[tokio::main]
+//! async fn main() -> anyhow::Result<()> {
+//!   // Add deployment specific concerns here
+//!   env_logger::init();
+//!   unleash_proxy::ProxyBuilder::default().
+//!       strategy("example", Box::new(&example)).execute().await
+//! }
+//! ```
 #![warn(clippy::all)]
 
 use std::collections::HashMap;
@@ -15,10 +64,14 @@ use hyper::{Body, Request, Response, Server};
 use hyper::{Method, StatusCode};
 use log::{debug, warn};
 use serde::{Deserialize, Serialize};
-use unleash_api_client::api::{Metrics, MetricsBucket};
-use unleash_api_client::client;
-use unleash_api_client::config::EnvironmentConfig;
-use unleash_api_client::context::{Context, IPAddress};
+use unleash_api_client::{
+    api::{Metrics, MetricsBucket},
+    client,
+    config::EnvironmentConfig,
+    context::{Context, IPAddress},
+    strategy::Strategy,
+    ClientBuilder,
+};
 
 const ALLOWED_HEADERS: &str = "authorization,content-type,if-none-match";
 
@@ -216,18 +269,22 @@ async fn send_metrics(
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    env_logger::init();
+/// Core workhorse for the proxy. Code in this function is generic across
+/// different deployment configurations e.g. logging, tracing, metrics
+/// implementations. See the [`crate`] level documentation for examples.
+pub async fn main() -> Result<()> {
+    ProxyBuilder::default().execute().await
+}
+
+async fn _main(builder: ClientBuilder) -> Result<()> {
+    // Not deployment specific:
     // We'll bind to 127.0.0.1:3000
     debug!("serving on 127.0.0.1:3000");
     let addr = ([127, 0, 0, 1], 3000).into();
 
     let config = EnvironmentConfig::from_env().map_err(|e| anyhow!(e))?;
     let client = Arc::new(
-        client::ClientBuilder::default()
-            .disable_metric_submission()
-            .enable_string_features()
+        builder
             .into_client::<UserFeatures>(
                 &config.api_url,
                 &config.app_name,
@@ -275,22 +332,55 @@ async fn main() -> Result<()> {
 
     let server = Server::bind(&addr).serve(make_svc);
     if let Err(e) = futures::try_join!(
-        async { Ok(client.poll_for_updates().await) },
         async {
-            Ok(send_metrics(
+            client.poll_for_updates().await;
+            Ok(())
+        },
+        async {
+            send_metrics(
                 &config.api_url,
                 client.clone(),
                 client_metrics.clone(),
                 // 30 seconds is the default interval for metrics in the browser client source
                 Duration::from_secs(30),
             )
-            .await)
+            .await;
+            Ok(())
         },
         server,
     ) {
         eprintln!("server error: {}", e);
     }
     Ok(())
+}
+
+/// Permits customising the Proxy behaviour. See the [`crate`] level docs for examples.
+pub struct ProxyBuilder {
+    client_builder: ClientBuilder,
+}
+
+impl ProxyBuilder {
+    /// Run the configured proxy
+    pub async fn execute(self) -> Result<()> {
+        _main(self.client_builder).await
+    }
+
+    /// Add a [`Strategy`] to this proxy.
+    pub fn strategy(self, name: &str, strategy: Strategy) -> Self {
+        ProxyBuilder {
+            client_builder: self.client_builder.strategy(name, strategy),
+        }
+    }
+}
+
+impl Default for ProxyBuilder {
+    fn default() -> Self {
+        ProxyBuilder {
+            client_builder: ClientBuilder::default()
+                .disable_metric_submission()
+                .enable_string_features(),
+        }
+    }
 }
 
 mod tests {

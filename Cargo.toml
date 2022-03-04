@@ -1,26 +1,36 @@
 [package]
-name = "unleash-proxy-rust"
-version = "0.1.0"
 authors = ["Robert Collins <robert.collins@cognite.com>"]
+categories = ["command-line-utilities", "web-programming"]
+description = "An https://unleash.github.io/ web proxy"
 edition = "2018"
-license = "unlicensed"
+homepage = "https://github.com/cognitedata/unleash-proxy-rust/"
+keywords = ["continualdeployment"]
+license = "Apache-2.0"
+name = "unleash-proxy"
+readme = "README.md"
+repository = "https://github.com/cognitedata/unleash-proxy-rust/"
+version = "0.1.0"
+
+[badges]
+[badges.maintenance]
+status = "experimental"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.31"
-chrono = { version = "0.4.11", features = ["serde"] }
-enum-map = "0.6.2"
-env_logger = "0.8.2"
-futures = "0.3.8"
+anyhow = "1.0.55"
+chrono = { version = "0.4.19", features = ["serde"] }
+enum-map = "1.1.1"
+env_logger = "0.9.0"
+futures = "0.3.21"
 futures-timer = "3.0.2"
-http-client = "6.2.0"
-http-types = "2.8.0"
-hyper = "0.13"
+http-client = "6.5.1"
+http-types = "2.12.0"
+hyper = { version = "0.14.17", features = ["full"] }
 ipaddress = "0.1.2"
 log = "0.4.8"
 serde = { version = "1.0.0", features = ["derive"] }
 serde_json = "1.0.56"
-tokio = { version = "0.3", features = ["full"] }
+tokio = { version = "1.17.0", features = ["full"] }
 unleash-api-client = "0.6.0"
-url = "2.2.0"
+url = "2.2.2"
