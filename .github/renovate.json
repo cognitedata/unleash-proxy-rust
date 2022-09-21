@@ -1,0 +1,13 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "local>cognitedata/renovate-config"
+    ],
+    "git-submodules": {
+        "enabled": true
+    },
+    "labels": [
+        "dependencies",
+        "auto-merge"
+    ]
+}
