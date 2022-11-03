@@ -583,7 +583,16 @@ version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e893a7ba6116821058dec84a6fb14fb2a97cd8ce5fd0f85d5a4e760ecd7329d9"
 dependencies = [
- "enum-map-derive",
+ "enum-map-derive 0.6.0",
+]
+
+[[package]]
+name = "enum-map"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7848397e7221a27d81cb7f07498d563f09b23fcd52ce9f74a6a110ed28f7cd4f"
+dependencies = [
+ "enum-map-derive 0.8.0",
 ]
 
 [[package]]
@@ -591,6 +600,17 @@ name = "enum-map-derive"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84278eae0af6e34ff6c1db44c11634a694aafac559ff3080e4db4e4ac35907aa"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "enum-map-derive"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a63b7a0ddec6f38dcec5e36257750b7a8fcaf4227e12ceb306e341d63634da05"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2318,7 +2338,7 @@ dependencies = [
  "arc-swap",
  "async-std",
  "chrono",
- "enum-map",
+ "enum-map 1.1.1",
  "futures",
  "futures-timer",
  "hostname",
@@ -2341,7 +2361,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "enum-map",
+ "enum-map 2.0.2",
  "env_logger",
  "futures",
  "futures-timer",
