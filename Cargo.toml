@@ -24,7 +24,7 @@ enum-map = "1.1.1"
 env_logger = "0.9.0"
 futures = "0.3.21"
 futures-timer = "3.0.2"
-http-client = "6.5.1"
+http-client = "6.5.3"
 http-types = "2.12.0"
 hyper = { version = "0.14.17", features = ["full"] }
 ipaddress = "0.1.2"
